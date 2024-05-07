@@ -103,6 +103,9 @@ ggplot(monthly_avg, aes(x = month_year, y = percentage_change, color = candidate
 
 
 
+```{r}
+
+```
 
 # now lets see the polling overtime for the swing states. So far, Tump is leading in all of the swing states by a good margin
 
@@ -693,7 +696,7 @@ print(fox_sentiment_summary)
 
 
 
-#fox sentiment scores
+#fox sentiment scores. Here we see that Fox news is indeed very favorable towards Trump while impartial towards Biden.
 ```{r}
 fox_sentiment_scores <- fox_tokenized_data %>%
   inner_join(bing_lexicon, by = "word") %>%
@@ -743,10 +746,51 @@ for (president in f_presidents) {
 
 
 
+```{r}
+glimpse(fox_sentiment_summary)
+glimpse(sentiment_summary)
+glimpse(monthly_avg)
+```
+
+
+```{r}
+combined_sentiments <- bind_rows(data_with_sentiment, fox_data_with_sentiment)
+glimpse(combined_sentiments)
+```
+
+```{r}
+negative_words <- combined_sentiments %>%
+  filter(sentiment == "negative")
+
+# Group by President and concatenate negative words
+negative_words <- negative_words %>%
+  group_by(President) %>%
+  summarise(negative_text = paste(word, collapse = " "))
+
+
+# Generate word cloud for each President
+for (i in 1:nrow(negative_words)) {
+  president <- negative_words$President[i]
+  text <- negative_words$negative_text[i]
+  
+  # Clean the text (optional): remove punctuation, numbers, and extra spaces
+  clean_text <- str_replace_all(text, "[^[:alpha:][:space:]]", "")
+  
+  # Create word cloud
+  wordcloud(words = unlist(str_split(clean_text, "\\s+")), 
+            min.freq = 1,
+            max.words = 50,
+            random.order = FALSE,
+            colors = brewer.pal(8, "Dark2"),
+            main = paste("Negative Word Cloud for", president))
+}
+```
+
 
 
 
 # Conclusion:
 
-#It looks like there a positive correlation between positive news coverage and polling surveys. The swing states seem to be at partially influence by the news coverage, whether they view Fox news or Cnn. In addition, there does seem to be some bias in coverage from both medias.
+
+#It looks like there a positive correlation between positive news coverage and polling surveys. The swing states seem to be at partially influence by the news coverage, whether they view Fox news or Cnn. In addition, there does seem to be some bias in coverage from both medias. The negative sentiments can provide clues as to what voters may seem as an important issue
 
